@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GurixEdition — Сайты для заведений и локального бизнеса</title>
+    
+    <!-- Шрифты: Cormorant Garamond для выразительных заголовков и Golos Text для живого кириллического текста -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Палитра тёплого мха, оливковой бумаги и фисташковых акцентов -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Golos Text', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                    },
+                    colors: {
+                        moss: {
+                            950: '#111511', // Глубокий подвал / модалки
+                            900: '#161b16', // Основной тёплый мховый фон
+                            800: '#1d241d', // Карточки оттенка оливковой бумаги
+                            700: '#273027', // Ховеры и плашки
+                        },
+                        sage: {
+                            border: '#2f3a2f', // Тонкие деликатные границы 1px
+                            muted: '#9da69a',  // Приглушённый тёплый текст
+                        },
+                        cream: {
+                            100: '#f0efe9',    // Основной тёплый кремовый текст
+                            200: '#dfded6',
+                        },
+                        matcha: {
+                            300: '#b2cf95',
+                            400: '#98b878',    // Спокойный фисташково-матчевый акцент
+                            500: '#82a362',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Плавная смена вкладок без резких скачков */
+        .tab-panel {
+            animation: gentleAppear 0.28s ease-out;
+        }
+        @keyframes gentleAppear {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Аккуратный кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #161b16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2f3a2f;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #98b878;
+        }
+    </style>
+</head>
+<body class="bg-moss-900 text-cream-100 font-sans antialiased selection:bg-matcha-400 selection:text-moss-950 min-h-screen flex flex-col">
+
+    <!-- ==================== ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ ==================== -->
+    <header class="sticky top-0 z-40 bg-moss-900/95 backdrop-blur-md border-b border-sage-border">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                
+                <!-- Текстовый авторский логотип -->
+                <button onclick="switchTab('main')" class="flex items-baseline gap-2.5 text-left group">
+                    <span class="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-cream-100 group-hover:text-matcha-400 transition-colors">
+                        GurixEdition
+                    </span>
+                    <span class="hidden sm:inline-block text-xs text-sage-muted tracking-wide">
+                        / разработка сайтов
+                    </span>
+                </button>
+
+                <!-- Навигация по 3 вкладкам (ПК) -->
+                <nav class="hidden md:flex items-center gap-1 bg-moss-800 p-1 rounded-xl border border-sage-border">
+                    <button 
+                        onclick="switchTab('main')" 
+                        id="tab-btn-main"
+                        class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors bg-matcha-400 text-moss-950"
+                    >
+                        Основа
+                    </button>
+                    <button 
+                        onclick="switchTab('history')" 
+                        id="tab-btn-history"
+                        class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors text-sage-muted hover:text-cream-100"
+                    >
+                        История работ
+                    </button>
+                    <button 
+                        onclick="switchTab('reviews')" 
+                        id="tab-btn-reviews"
+                        class="px-4 py-1.5 rounded-lg text-sm font-medium transition-colors text-sage-muted hover:text-cream-100"
+                    >
+                        Отзывы
+                    </button>
+                </nav>
+
+                <!-- Кнопка связи + Бургер для телефона -->
+                <div class="flex items-center gap-2.5">
+                    <button onclick="openOrderModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-matcha-400/60 text-matcha-400 hover:bg-matcha-400 hover:text-moss-950 text-sm font-medium transition-colors">
+                        <span>Написать</span>
+                    </button>
+
+                    <button id="mobile-menu-btn" aria-label="Открыть меню" class="md:hidden p-2 rounded-xl bg-moss-800 border border-sage-border text-cream-100">
+                        <svg id="icon-menu-open" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                        <svg id="icon-menu-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Выпадающее меню для мобильных устройств -->
+        <div id="mobile-menu" class="hidden md:hidden bg-moss-800 border-b border-sage-border px-4 py-4 space-y-1.5">
+            <button onclick="switchTab('main'); toggleMobileMenu(false);" id="mob-tab-main" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium bg-matcha-400 text-moss-950">
+                Основа
+            </button>
+            <button onclick="switchTab('history'); toggleMobileMenu(false);" id="mob-tab-history" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-cream-100 hover:bg-moss-700">
+                История работ
+            </button>
+            <button onclick="switchTab('reviews'); toggleMobileMenu(false);" id="mob-tab-reviews" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-cream-100 hover:bg-moss-700">
+                Отзывы
+            </button>
+            <div class="pt-2 border-t border-sage-border">
+                <button onclick="openOrderModal(); toggleMobileMenu(false);" class="w-full py-2.5 rounded-xl border border-matcha-400 text-matcha-400 text-sm font-medium text-center">
+                    Написать по проекту
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== ОСНОВНОЙ КОНТЕНТ (3 ВКЛАДКИ) ==================== -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16">
+
+        <!-- =================================================================== -->
+        <!-- ВКЛАДКА 1: ОСНОВА                                                   -->
+        <!-- =================================================================== -->
+        <section id="view-main" class="tab-panel space-y-16 sm:space-y-24">
+            
+            <!-- Блок знакомства (Интро без штампов) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                <div class="lg:col-span-8">
+                    <div class="inline-flex items-center gap-2 text-xs text-matcha-400 font-medium mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-matcha-400"></span>
+                        <span>Открыт к новым проектам • Ноябрь 2026</span>
+                    </div>
+
+                    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-cream-100 leading-[1.08] mb-6">
+                        Делаю понятные и быстрые сайты для заведений и небольших команд.
+                    </h1>
+
+                    <p class="text-cream-200 text-base sm:text-lg leading-relaxed mb-4">
+                        Привет, я автор проекта <span class="text-matcha-400 font-medium">GurixEdition</span>. Собираю сайты для кафе, барбершопов, студий и мастерских — без громоздких конструкторов, лишней воды и раздутых ценников.
+                    </p>
+
+                    <p class="text-sage-muted text-sm sm:text-base leading-relaxed mb-8 max-w-2xl">
+                        Мне важно, чтобы ваш гость открыл ссылку с телефона, за десять секунд увидел меню или прайс, нашёл адрес и нажал кнопку записи. Всё пишу чистым кодом, поэтому страницы загружаются мгновенно.
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <a href="#calculator" class="px-6 py-3 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-sm transition-colors">
+                            Посчитать стоимость
+                        </a>
+                        <button onclick="switchTab('history')" class="px-6 py-3 rounded-xl bg-moss-800 hover:bg-moss-700 border border-sage-border text-cream-100 font-medium text-sm transition-colors">
+                            Посмотреть историю работ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Правая колонка: Три коротких принципа в журнальном стиле -->
+                <div class="lg:col-span-4 bg-moss-800 border border-sage-border rounded-2xl p-6 space-y-5">
+                    <div class="text-xs uppercase tracking-widest text-sage-muted border-b border-sage-border pb-3">
+                        Как строится работа
+                    </div>
+
+                    <div>
+                        <div class="text-sm font-semibold text-cream-100 mb-1">01. Сначала набросок</div>
+                        <p class="text-xs text-sage-muted leading-relaxed">
+                            Собираю первый экран под ваше заведение и кидаю ссылку для проверки на телефоне до оплаты.
+                        </p>
+                    </div>
+
+                    <div class="border-t border-sage-border pt-4">
+                        <div class="text-sm font-semibold text-cream-100 mb-1">02. Честный прайс</div>
+                        <p class="text-xs text-sage-muted leading-relaxed">
+                            Цена фиксируется в калькуляторе ниже — без внезапных доплат за «адаптацию под смартфон».
+                        </p>
+                    </div>
+
+                    <div class="border-t border-sage-border pt-4">
+                        <div class="text-sm font-semibold text-cream-100 mb-1">03. Запуск за 1–3 дня</div>
+                        <p class="text-xs text-sage-muted leading-relaxed">
+                            Помогаю выложить готовый сайт в интернет и привязать ваши соцсети или домен.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок калькулятора со сниженными ценами -->
+            <div id="calculator" class="pt-12 border-t border-sage-border">
+                <div class="max-w-xl mb-8">
+                    <span class="text-xs uppercase tracking-widest text-matcha-400 font-medium">Калькулятор</span>
+                    <h2 class="font-serif text-3xl sm:text-4xl font-bold text-cream-100 mt-1">
+                        Рассчитать стоимость сайта
+                    </h2>
+                    <p class="text-sage-muted text-sm mt-2">
+                        Отметьте нужный формат и дополнительные блоки — сумма и примерный срок пересчитаются сразу.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Выбор формата и опций -->
+                    <div class="lg:col-span-7 bg-moss-800 border border-sage-border rounded-2xl p-5 sm:p-7 space-y-7">
+                        
+                        <!-- Шаг 1: Базовый формат -->
+                        <div>
+                            <div class="text-xs font-medium text-sage-muted uppercase tracking-wider mb-3">
+                                1. Формат сайта
+                            </div>
+                            <div class="space-y-2.5">
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="baseSite" value="1100" data-days="2" data-title="Одностраничный лендинг" class="peer sr-only" checked onchange="updateCalculator()">
+                                    <div class="p-4 rounded-xl bg-moss-900 border border-sage-border peer-checked:border-matcha-400 peer-checked:bg-moss-700/60 transition-colors flex items-center justify-between gap-4">
+                                        <div>
+                                            <div class="text-sm font-semibold text-cream-100">Одностраничный лендинг</div>
+                                            <div class="text-xs text-sage-muted mt-0.5">Главный экран, описание, услуги, адрес и контакты</div>
+                                        </div>
+                                        <div class="text-sm font-bold text-matcha-400 shrink-0">1 100 ₽</div>
+                                    </div>
+                                </label>
+
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="baseSite" value="1600" data-days="3" data-title="Сайт с меню / каталогом и вкладками" class="peer sr-only" onchange="updateCalculator()">
+                                    <div class="p-4 rounded-xl bg-moss-900 border border-sage-border peer-checked:border-matcha-400 peer-checked:bg-moss-700/60 transition-colors flex items-center justify-between gap-4">
+                                        <div>
+                                            <div class="text-sm font-semibold text-cream-100">Сайт с меню / каталогом и вкладками</div>
+                                            <div class="text-xs text-sage-muted mt-0.5">Удобное переключение категорий блюд или услуг</div>
+                                        </div>
+                                        <div class="text-sm font-bold text-matcha-400 shrink-0">1 600 ₽</div>
+                                    </div>
+                                </label>
+
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="baseSite" value="2100" data-days="4" data-title="Небольшой многостраничник" class="peer sr-only" onchange="updateCalculator()">
+                                    <div class="p-4 rounded-xl bg-moss-900 border border-sage-border peer-checked:border-matcha-400 peer-checked:bg-moss-700/60 transition-colors flex items-center justify-between gap-4">
+                                        <div>
+                                            <div class="text-sm font-semibold text-cream-100">Небольшой многостраничник</div>
+                                            <div class="text-xs text-sage-muted mt-0.5">Несколько отдельных разделов, галерея и подробный прайс</div>
+                                        </div>
+                                        <div class="text-sm font-bold text-matcha-400 shrink-0">2 100 ₽</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Шаг 2: Дополнительные модули -->
+                        <div>
+                            <div class="text-xs font-medium text-sage-muted uppercase tracking-wider mb-3">
+                                2. Дополнительные модули
+                            </div>
+                            <div class="space-y-2">
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-moss-900 border border-sage-border hover:border-sage-muted/50 cursor-pointer transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" value="250" data-days="0.5" data-title="Онлайн-запись / форма заявки в Telegram" class="addon-check w-4 h-4 accent-[#98b878]" checked onchange="updateCalculator()">
+                                        <span class="text-sm text-cream-100">Онлайн-запись / форма заявки в Telegram</span>
+                                    </div>
+                                    <span class="text-xs font-semibold text-matcha-400 shrink-0 ml-2">+250 ₽</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-moss-900 border border-sage-border hover:border-sage-muted/50 cursor-pointer transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" value="300" data-days="0.5" data-title="Интерактивный прайс-лист или калькулятор" class="addon-check w-4 h-4 accent-[#98b878]" onchange="updateCalculator()">
+                                        <span class="text-sm text-cream-100">Интерактивный прайс-лист или калькулятор</span>
+                                    </div>
+                                    <span class="text-xs font-semibold text-matcha-400 shrink-0 ml-2">+300 ₽</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-moss-900 border border-sage-border hover:border-sage-muted/50 cursor-pointer transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" value="200" data-days="0" data-title="Подключение Яндекс/Google карт и контактов" class="addon-check w-4 h-4 accent-[#98b878]" checked onchange="updateCalculator()">
+                                        <span class="text-sm text-cream-100">Подключение Яндекс/Google карт и контактов</span>
+                                    </div>
+                                    <span class="text-xs font-semibold text-matcha-400 shrink-0 ml-2">+200 ₽</span>
+                                </label>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-moss-900 border border-sage-border hover:border-sage-muted/50 cursor-pointer transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" value="350" data-days="-2" data-title="Срочная сборка за 24 часа" class="addon-check w-4 h-4 accent-[#98b878]" onchange="updateCalculator()">
+                                        <span class="text-sm text-cream-100">Срочная сборка за 24 часа</span>
+                                    </div>
+                                    <span class="text-xs font-semibold text-cream-200 shrink-0 ml-2">+350 ₽</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Итоговая сводка -->
+                    <div class="lg:col-span-5 bg-moss-800 border border-sage-border rounded-2xl p-6 sm:p-7">
+                        <div class="flex items-center justify-between border-b border-sage-border pb-4">
+                            <span class="text-xs uppercase tracking-wider text-sage-muted">Итоговый расчёт</span>
+                            <span id="calc-timeline" class="text-xs font-medium px-2.5 py-1 rounded-md bg-moss-900 border border-sage-border text-matcha-400">
+                                ~2–3 дня
+                            </span>
+                        </div>
+
+                        <div class="my-6">
+                            <div id="calc-total" class="font-serif text-4xl sm:text-5xl font-bold text-cream-100">
+                                1 550 ₽
+                            </div>
+                            <p class="text-xs text-sage-muted mt-2 leading-relaxed">
+                                Оплата только после того, как вы посмотрите готовое демо по ссылке.
+                            </p>
+                        </div>
+
+                        <div class="border-t border-sage-border pt-4 mb-6">
+                            <div class="text-xs text-sage-muted mb-2.5">Выбрано:</div>
+                            <ul id="calc-list" class="space-y-1.5 text-xs sm:text-sm text-cream-200">
+                            </ul>
+                        </div>
+
+                        <button onclick="openCalculatorOrder()" class="w-full py-3.5 px-5 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-sm transition-colors">
+                            Обсудить этот вариант
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- ВКЛАДКА 2: ИСТОРИЯ РАБОТ                                            -->
+        <!-- =================================================================== -->
+        <section id="view-history" class="tab-panel hidden space-y-10">
+            
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-sage-border pb-6">
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-matcha-400 font-medium">Архив и статус</span>
+                    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cream-100 mt-1">
+                        История работ
+                    </h1>
+                </div>
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-moss-800 border border-sage-border text-xs text-cream-200">
+                    <span class="w-2 h-2 rounded-full bg-matcha-400"></span>
+                    <span>2 из 3 стартовых мест свободны</span>
+                </div>
+            </div>
+
+            <!-- Честный лог запуска студии -->
+            <div class="bg-moss-800 border border-sage-border rounded-2xl p-6 sm:p-8 max-w-3xl">
+                <div class="text-xs text-sage-muted mb-2">Запись в журнале • Ноябрь 2026</div>
+                <h2 class="font-serif text-2xl sm:text-3xl font-bold text-cream-100 mb-3">
+                    Запуск студии — собираю первые реальные кейсы
+                </h2>
+                <p class="text-cream-200 text-sm sm:text-base leading-relaxed mb-5">
+                    Запуск студии — ноябрь 2026. Сейчас собираю первые реальные кейсы для заведений по сниженному стартовому прайсу. Поэтому вместо десятка выдуманных картинок здесь всё честно: ниже лежит стартовый концепт, а рядом — свободные слоты под первые заказы.
+                </p>
+                <button onclick="openOrderModal('Хочу занять одно из стартовых мест в истории работ')" class="px-5 py-2.5 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-sm transition-colors">
+                    Занять стартовое место
+                </button>
+            </div>
+
+            <!-- Сетка проектов и свободных слотов -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Карточка 1: Стартовый концепт BLADE & CO. -->
+                <article class="bg-moss-800 border border-sage-border rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-4">
+                            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-moss-900 border border-sage-border text-matcha-400">
+                                Концепт #01
+                            </span>
+                            <span class="text-xs text-sage-muted">Ноябрь 2026</span>
+                        </div>
+
+                        <h3 class="font-serif text-2xl font-bold text-cream-100 mb-2">
+                            BLADE & CO. — концепт лендинга для барбершопа
+                        </h3>
+
+                        <p class="text-xs sm:text-sm text-sage-muted leading-relaxed mb-5">
+                            Одностраничный сайт мужской парикмахерской: переключатель категорий прайса, карточки мастеров, схема проезда и модальное окно онлайн-записи.
+                        </p>
+
+                        <div class="flex flex-wrap gap-1.5 mb-6">
+                            <span class="text-[11px] px-2 py-0.5 rounded bg-moss-900 text-sage-muted border border-sage-border">HTML / Tailwind</span>
+                            <span class="text-[11px] px-2 py-0.5 rounded bg-moss-900 text-sage-muted border border-sage-border">Адаптив</span>
+                            <span class="text-[11px] px-2 py-0.5 rounded bg-moss-900 text-sage-muted border border-sage-border">Онлайн-запись</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-sage-border flex items-center justify-between gap-3">
+                        <!-- ПОДСКАЗКА: Замени # на ссылку с Netlify, когда зальёшь демо-сайт барбершопа -->
+                        <a href="#" onclick="openOrderModal('Интересует демо-концепт BLADE & CO. (хочу похожий сайт)'); return false;" class="text-xs font-semibold text-matcha-400 hover:underline">
+                            Открыть демо →
+                        </a>
+                        <button onclick="openOrderModal('Хочу сайт в стиле концепта BLADE & CO.')" class="text-xs text-cream-200 hover:text-cream-100">
+                            Заказать похожий
+                        </button>
+                    </div>
+                </article>
+
+                <!-- Слот 2: Свободен -->
+                <div class="bg-moss-800/40 border border-dashed border-sage-border rounded-2xl p-6 flex flex-col justify-between min-h-[280px]">
+                    <div>
+                        <div class="text-xs text-matcha-400 font-medium mb-2">Слот #02 • Свободен</div>
+                        <h3 class="font-serif text-2xl font-bold text-cream-100 mb-2">
+                            Место под ваш проект
+                        </h3>
+                        <p class="text-xs sm:text-sm text-sage-muted leading-relaxed">
+                            Подойдёт для кофейни, пекарни, студии маникюра или автосервиса. Сделаю первый экран для оценки бесплатно.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-sage-border/60">
+                        <button onclick="openOrderModal('Бронирую Слот #02')" class="text-xs font-semibold text-matcha-400 hover:underline">
+                            Обсудить запуск →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Слот 3: Свободен -->
+                <div class="bg-moss-800/40 border border-dashed border-sage-border rounded-2xl p-6 flex flex-col justify-between min-h-[280px]">
+                    <div>
+                        <div class="text-xs text-matcha-400 font-medium mb-2">Слот #03 • Свободен</div>
+                        <h3 class="font-serif text-2xl font-bold text-cream-100 mb-2">
+                            Второй стартовый кейс
+                        </h3>
+                        <p class="text-xs sm:text-sm text-sage-muted leading-relaxed">
+                            Сборка по сниженному стартовому тарифу с публикацией ссылки на готовый проект в этом архиве.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-sage-border/60">
+                        <button onclick="openOrderModal('Бронирую Слот #03')" class="text-xs font-semibold text-matcha-400 hover:underline">
+                            Оставить заявку →
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- ВКЛАДКА 3: ОТЗЫВЫ                                                   -->
+        <!-- =================================================================== -->
+        <section id="view-reviews" class="tab-panel hidden space-y-10">
+            
+            <div class="border-b border-sage-border pb-6">
+                <span class="text-xs uppercase tracking-widest text-matcha-400 font-medium">Обратная связь</span>
+                <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cream-100 mt-1">
+                    Отзывы клиентов
+                </h1>
+            </div>
+
+            <!-- Честное пустое состояние (Empty State) -->
+            <div id="reviews-empty-state" class="bg-moss-800 border border-sage-border rounded-2xl p-8 sm:p-12 max-w-2xl">
+                <div class="w-10 h-10 rounded-xl bg-moss-900 border border-sage-border text-matcha-400 flex items-center justify-center font-serif text-2xl font-bold mb-5">
+                    “
+                </div>
+                <h2 class="font-serif text-2xl sm:text-3xl font-bold text-cream-100 mb-3">
+                    Здесь появятся отзывы первых заказчиков
+                </h2>
+                <p class="text-sage-muted text-sm sm:text-base leading-relaxed mb-6">
+                    Я не придумываю фейковые комментарии от «Ивана И.». Как только первый сайт отправится в работу и владелец заведения примет результат, его отзыв и скриншот переписки появятся прямо на этой странице.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="openOrderModal('Хочу заказать сайт и оставить первый отзыв')" class="px-5 py-2.5 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-sm transition-colors">
+                        Стать первым клиентом
+                    </button>
+                    <button onclick="switchTab('main')" class="px-5 py-2.5 rounded-xl bg-moss-900 hover:bg-moss-700 border border-sage-border text-cream-100 text-sm transition-colors">
+                        К расчёту стоимости
+                    </button>
+                </div>
+            </div>
+
+            <!-- =================================================================
+                 ИНСТРУКЦИЯ ДЛЯ АВТОРА (КАК ДОБАВЛЯТЬ СЮДА ОТЗЫВЫ В БУДУЩЕМ):
+                 1. Когда появится первый отзыв, удали блок <div id="reviews-empty-state">...</div> выше.
+                 2. Раскомментируй сетку <div id="reviews-grid"> ниже (убери <!-- и -->)
+                    и скопируй шаблон карточки <article> нужное количество раз.
+                 3. Если захочешь вставить скриншот переписки из Telegram: положи картинку
+                    рядом с index.html (например, review-1.jpg) и добавь тег:
+                    <img src="review-1.jpg" alt="Скриншот отзыва" class="mt-4 rounded-xl border border-sage-border w-full">
+            ================================================================== -->
+
+            <!--
+            <div id="reviews-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <article class="bg-moss-800 border border-sage-border rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-sage-muted mb-4">
+                            <span class="text-matcha-400 font-medium">Лендинг для кофейни</span>
+                            <span>Декабрь 2026</span>
+                        </div>
+                        <p class="text-cream-100 text-sm sm:text-base leading-relaxed">
+                            «Текст реального отзыва от владельца заведения. Всё сделали быстро, поправили цены и меню по первому запросу.»
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-sage-border flex items-center justify-between">
+                        <div>
+                            <div class="text-sm font-semibold text-cream-100">Имя Клиента</div>
+                            <div class="text-xs text-sage-muted">Владелец заведения</div>
+                        </div>
+                        <span class="text-xs text-matcha-400">Проверенный заказ</span>
+                    </div>
+                </article>
+
+            </div>
+            -->
+
+        </section>
+
+    </main>
+
+    <!-- ==================== ПОДВАЛ САЙТА (FOOTER) ==================== -->
+    <footer class="border-t border-sage-border bg-moss-950/60 py-8 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-sage-muted">
+            <div>
+                <span class="font-serif text-base font-bold text-cream-100 mr-2">GurixEdition</span>
+                <span>© 2026 • Разработка сайтов для бизнеса</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <button onclick="switchTab('main')" class="hover:text-cream-100 transition-colors">Основа</button>
+                <button onclick="switchTab('history')" class="hover:text-cream-100 transition-colors">История работ</button>
+                <button onclick="switchTab('reviews')" class="hover:text-cream-100 transition-colors">Отзывы</button>
+                <button onclick="openOrderModal()" class="text-matcha-400 hover:underline">Написать</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО ЗАЯВКИ ==================== -->
+    <div id="order-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+        <div class="bg-moss-800 border border-sage-border rounded-2xl w-full max-w-md p-6 sm:p-7 relative shadow-2xl">
+            
+            <button onclick="closeOrderModal()" aria-label="Закрыть окно" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-moss-900 border border-sage-border text-sage-muted hover:text-cream-100 flex items-center justify-center text-sm">
+                ✕
+            </button>
+
+            <!-- Форма ввода -->
+            <div id="modal-form-step">
+                <div class="text-xs text-matcha-400 font-medium mb-1">GurixEdition</div>
+                <h3 class="font-serif text-2xl sm:text-3xl font-bold text-cream-100 mb-4">
+                    Оставить заявку
+                </h3>
+
+                <!-- Блок с выбранной конфигурацией из калькулятора -->
+                <div id="modal-selected-box" class="hidden mb-4 p-3 rounded-xl bg-moss-900 border border-sage-border text-xs text-cream-200">
+                    <div class="text-sage-muted mb-1">Выбранный вариант:</div>
+                    <div id="modal-selected-text" class="font-medium text-matcha-400"></div>
+                </div>
+
+                <form id="order-form" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs text-sage-muted mb-1">Как к вам обращаться *</label>
+                        <input type="text" id="field-name" required placeholder="Например, Дмитрий" class="w-full bg-moss-900 border border-sage-border rounded-xl px-3.5 py-2.5 text-sm text-cream-100 placeholder-sage-muted/50 focus:outline-none focus:border-matcha-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-sage-muted mb-1">Заведение или ниша *</label>
+                        <input type="text" id="field-place" required placeholder="Например, кофейня «Утро»" class="w-full bg-moss-900 border border-sage-border rounded-xl px-3.5 py-2.5 text-sm text-cream-100 placeholder-sage-muted/50 focus:outline-none focus:border-matcha-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-sage-muted mb-1">Telegram или телефон для связи *</label>
+                        <input type="text" id="field-contact" required placeholder="@username или +7 999 000-00-00" class="w-full bg-moss-900 border border-sage-border rounded-xl px-3.5 py-2.5 text-sm text-cream-100 placeholder-sage-muted/50 focus:outline-none focus:border-matcha-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-sage-muted mb-1">Короткий комментарий (необязательно)</label>
+                        <textarea id="field-note" rows="2" placeholder="Есть ли уже фото, меню или пожелания по цветам" class="w-full bg-moss-900 border border-sage-border rounded-xl px-3.5 py-2.5 text-sm text-cream-100 placeholder-sage-muted/50 focus:outline-none focus:border-matcha-400"></textarea>
+                    </div>
+
+                    <p id="form-warning" class="hidden text-xs text-red-400">Заполните имя, заведение и контакт для связи.</p>
+
+                    <button type="submit" class="w-full py-3 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-sm transition-colors">
+                        Сформировать заявку
+                    </button>
+                </form>
+            </div>
+
+            <!-- Экран готовой заявки для отправки в Telegram -->
+            <div id="modal-done-step" class="hidden space-y-4">
+                <div class="text-xs text-matcha-400 font-medium">Готово</div>
+                <h3 class="font-serif text-2xl sm:text-3xl font-bold text-cream-100">
+                    Текст заявки собран
+                </h3>
+                <p class="text-xs text-sage-muted leading-relaxed">
+                    Скопируйте сообщение ниже и отправьте мне в Telegram — отвечу и покажу первый набросок.
+                </p>
+
+                <div id="brief-preview" class="p-3.5 rounded-xl bg-moss-900 border border-sage-border text-xs text-cream-200 whitespace-pre-line font-mono"></div>
+
+                <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+                    <button onclick="copyBriefText()" id="btn-copy-brief" class="flex-1 py-3 px-4 rounded-xl bg-matcha-400 hover:bg-matcha-300 text-moss-950 font-semibold text-xs sm:text-sm transition-colors">
+                        Скопировать заявку
+                    </button>
+                    <!-- ВАЖНО: Замени your_username на свой реальный ник в Telegram -->
+                    <a href="https://t.me/your_username" target="_blank" rel="noopener noreferrer" class="flex-1 py-3 px-4 rounded-xl bg-moss-900 hover:bg-moss-700 border border-sage-border text-cream-100 font-medium text-xs sm:text-sm text-center transition-colors">
+                        Открыть Telegram →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== СКРИПТЫ (НАВИГАЦИЯ, КАЛЬКУЛЯТОР, ЗАЯВКА) ==================== -->
+    <script>
+        // Контакты для быстрой связи
+        const TELEGRAM_USERNAME = "gurixedition";
+        const WHATSAPP_PHONE = "79634286813";
+
+        // 1. Переключение 3 вкладок: Основа / История работ / Отзывы
+// ... existing code ... -->
